@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.DishMapper">
+    <update id="update">
+        update dish
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="image !=null">
+                image = #{image},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="categoryId != null">
+                category_id = #{categoryId},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteByIds">
+        delete from dish
+        where id in
+        <foreach item="id" collection="ids" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="findByCondition" resultType="com.sky.vo.DishVO">
+        select d.*,c.name categoryName from dish d
+        left join category c on d.category_id = c.id
+        <where>
+            <if test="name != null">
+                and d.name like concat('%',#{name},'%')
+            </if>
+            <if test="categoryId != null">
+                and d.category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                and d.status = #{status}
+            </if>
+        </where>
+        order by d.update_time desc
+    </select>
+    <select id="findByIds" resultType="com.sky.entity.Dish">
+        select * from dish
+        where id in
+        <foreach item="id" collection="ids" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <resultMap id="DishVO" type="com.sky.vo.DishVO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="image" property="image" />
+        <result column="price" property="price" />
+        <result column="category_id" property="categoryId" />
+        <result column="description" property="description" />
+        <collection property="flavors" ofType="com.sky.entity.DishFlavor">
+            <id column="df_id" property="id" />
+            <result column="df_name" property="name"/>
+            <result column="df_value" property="value"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="getByIdWithFlavor" resultMap="DishVO">
+        select d.*,
+               df.id df_id,
+               df.name df_name,
+               df.value df_value
+        from dish d
+        left join dish_flavor df on d.id = df.dish_id
+        where d.id = #{id}
+    </select>
+</mapper>

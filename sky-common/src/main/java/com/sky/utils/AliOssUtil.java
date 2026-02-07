@@ -1,68 +1,56 @@
 package com.sky.utils;
 
-import com.aliyun.oss.ClientException;
+import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.aliyun.oss.OSSException;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import java.io.ByteArrayInputStream;
+import com.aliyun.oss.common.auth.CredentialsProviderFactory;
+import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
+import com.aliyun.oss.common.comm.SignVersion;
+import com.aliyuncs.exceptions.ClientException;
+import com.sky.properties.AliOssProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-@Data
-@AllArgsConstructor
-@Slf4j
+import java.io.ByteArrayInputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+
+@Component
 public class AliOssUtil {
 
-    private String endpoint;
-    private String accessKeyId;
-    private String accessKeySecret;
-    private String bucketName;
+    private final AliOssProperties aliyunOSSProperties;
+    private final OSS ossClient;
 
-    /**
-     * 文件上传
-     *
-     * @param bytes
-     * @param objectName
-     * @return
-     */
-    public String upload(byte[] bytes, String objectName) {
+    @Autowired
+    public AliOssUtil(AliOssProperties aliyunOSSProperties) throws ClientException {
+        this.aliyunOSSProperties = aliyunOSSProperties;
 
-        // 创建OSSClient实例。
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        // 使用环境变量
+        EnvironmentVariableCredentialsProvider credentialsProvider =
+                CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
 
-        try {
-            // 创建PutObject请求。
-            ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(bytes));
-        } catch (OSSException oe) {
-            System.out.println("Caught an OSSException, which means your request made it to OSS, "
-                    + "but was rejected with an error response for some reason.");
-            System.out.println("Error Message:" + oe.getErrorMessage());
-            System.out.println("Error Code:" + oe.getErrorCode());
-            System.out.println("Request ID:" + oe.getRequestId());
-            System.out.println("Host ID:" + oe.getHostId());
-        } catch (ClientException ce) {
-            System.out.println("Caught an ClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with OSS, "
-                    + "such as not being able to access the network.");
-            System.out.println("Error Message:" + ce.getMessage());
-        } finally {
-            if (ossClient != null) {
-                ossClient.shutdown();
-            }
-        }
+        ClientBuilderConfiguration config = new ClientBuilderConfiguration();
+        config.setSignatureVersion(SignVersion.V4);
 
-        //文件访问路径规则 https://BucketName.Endpoint/ObjectName
-        StringBuilder stringBuilder = new StringBuilder("https://");
-        stringBuilder
-                .append(bucketName)
-                .append(".")
-                .append(endpoint)
-                .append("/")
-                .append(objectName);
+        this.ossClient = OSSClientBuilder.create()
+                .endpoint(aliyunOSSProperties.getEndpoint())
+                .credentialsProvider(credentialsProvider)
+                .clientConfiguration(config)
+                .region(aliyunOSSProperties.getRegion())
+                .build();
+    }
 
-        log.info("文件上传到:{}", stringBuilder.toString());
+    public String upload(byte[] content, String originalFilename) throws Exception {
+        String bucketName = aliyunOSSProperties.getBucketName();
+        String dir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
+        String newFileName = UUID.randomUUID() + originalFilename.substring(originalFilename.lastIndexOf("."));
+        String objectName = dir + "/" + newFileName;
 
-        return stringBuilder.toString();
+        ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(content));
+
+        return "https://" + bucketName + "." +
+                aliyunOSSProperties.getEndpoint().replace("https://", "") +
+                "/" + objectName;
     }
 }
