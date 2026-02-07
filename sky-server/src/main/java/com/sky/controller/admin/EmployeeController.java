@@ -33,7 +33,7 @@ public class EmployeeController {
 
      //登录
     @PostMapping("/login")
-    public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO) {
+    public Result login(@RequestBody EmployeeLoginDTO employeeLoginDTO) {
         log.info("员工登录：{}", employeeLoginDTO);
 
         Employee employee = employeeService.login(employeeLoginDTO);
@@ -58,7 +58,7 @@ public class EmployeeController {
 
     //退出
     @PostMapping("/logout")
-    public Result<String> logout() {
+    public Result logout() {
         return Result.success();
     }
 
@@ -73,7 +73,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/page")
-    public Result<PageResult> page(EmployeePageQueryDTO employeePageQueryDTO){
+    public Result page(EmployeePageQueryDTO employeePageQueryDTO){
         log.info("分页查询员工信息");
         PageResult pageResult = employeeService.page(employeePageQueryDTO);
         return Result.success(pageResult);
