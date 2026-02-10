@@ -41,7 +41,7 @@
         </foreach>
     </delete>
 
-    <select id="findAll" resultType="com.sky.entity.Setmeal">
+    <select id="findByConditions" resultType="com.sky.entity.Setmeal">
         select * from setmeal
         <where>
             <if test="categoryId !=null">

@@ -7,6 +7,7 @@ import com.sky.vo.SetmealVO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
 public interface SetmealMapper {
 
 
-    Page<Setmeal> findAll(Setmeal setmeal);
+    Page<Setmeal> findByConditions(Setmeal setmeal);
 
     @AutoFill(value = OperationType.UPDATE)
     void update(Setmeal setmeal);
@@ -30,4 +31,7 @@ public interface SetmealMapper {
     SetmealVO getByIdWithDish(Long id);
 
     List<Setmeal> findByIds(List<Long> ids);
+
+    @Select("select * from setmeal where category_id =#{categoryId}")
+    List<Setmeal> getBycategoryId(Integer categoryId);
 }

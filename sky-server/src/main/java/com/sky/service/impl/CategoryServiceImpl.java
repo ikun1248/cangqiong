@@ -75,4 +75,5 @@ public class CategoryServiceImpl implements CategoryService {
 
         return categoryMapper.listByType(type);
     }
+
 }

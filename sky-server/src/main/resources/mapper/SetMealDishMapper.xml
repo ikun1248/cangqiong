@@ -22,4 +22,10 @@
             #{id}
         </foreach>
     </select>
+    <select id="getDishBySetmealId" resultType="com.sky.vo.DishItemVO">
+        select  copies,d.description,d.image,d.name
+        from dish d
+        right join setmeal_dish sd on d.id = sd.dish_id
+        where sd.setmeal_id = #{setmealId}
+    </select>
 </mapper>

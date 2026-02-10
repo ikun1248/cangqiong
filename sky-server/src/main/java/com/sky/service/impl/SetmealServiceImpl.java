@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
@@ -12,6 +13,7 @@ import com.sky.mapper.SetMealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.SetmealService;
+import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -28,7 +30,7 @@ public class SetmealServiceImpl implements SetmealService {
     @Autowired
     SetmealMapper setmealMapper;
     @Autowired
-    private SetMealDishMapper setMealDishMapper;
+    SetMealDishMapper setMealDishMapper;
 
     @Override
     public PageResult findALl(SetmealPageQueryDTO setmealPageQueryDTO) {
@@ -38,7 +40,7 @@ public class SetmealServiceImpl implements SetmealService {
         BeanUtils.copyProperties(setmealPageQueryDTO,setmeal);
         log.info("categoryId={}",setmeal.getCategoryId());
 
-        Page<Setmeal> page = setmealMapper.findAll(setmeal);
+        Page<Setmeal> page = setmealMapper.findByConditions(setmeal);
 
         PageResult pageResult = new PageResult();
         pageResult.setTotal(page.getTotal());
@@ -108,5 +110,27 @@ public class SetmealServiceImpl implements SetmealService {
     public SetmealVO getByIdWhithDish(Long id) {
 
         return setmealMapper.getByIdWithDish(id);
+    }
+
+    @Override
+    public List<Setmeal> getBycategoryId(Long categoryId) {
+
+
+        Setmeal setmeal = new Setmeal();
+        setmeal.setCategoryId(categoryId);
+
+        List<Setmeal> setmealList = setmealMapper.findByConditions(setmeal);
+
+
+
+
+        return setmealList;
+    }
+
+    @Override
+    public List<DishItemVO> getDishById(Long id) {
+
+
+        return setMealDishMapper.getDishBySetmealId(id);
     }
 }
