@@ -2,10 +2,23 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.sky.mapper.SetMealDishMapper">
+    <insert id="insert">
+        insert into setmeal_dish (copies,dish_id,name,price,setmeal_id)
+        values
+        <foreach item="item"  collection="setmealDishes" separator=",">
+            (#{item.copies},#{item.dishId},#{item.name},#{item.price},#{item.setmealId})
+        </foreach>
+    </insert>
+    <delete id="deleteBySetmealIds">
+        delete from setmeal_dish where setmeal_id in
+        <foreach item="id" collection="setmealIds" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
 
     <select id="getByDishIds" resultType="com.sky.entity.SetmealDish">
         select * from setmeal_dish where dish_id in
-        <foreach item="id" collection="ids" open="(" close=")" separator=",">
+        <foreach item="id" collection="dishIds" open="(" close=")" separator=",">
             #{id}
         </foreach>
     </select>
